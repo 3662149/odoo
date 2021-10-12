@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="transport_type_national" model="transport.type">
+        <field name="name">National transport</field>
+    </record>
+    <record id="transport_type_international" model="transport.type">
+        <field name="name">International transport</field>
+    </record>
+</odoo>
