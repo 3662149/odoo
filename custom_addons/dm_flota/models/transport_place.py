@@ -17,5 +17,5 @@ class TransportPlace(models.Model):
     def name_get(self):
         result = []
         for rec in self:
-            result.append((rec.id, '%s - %s - %s' % (rec.name, rec.partner_id.name, rec.country_id.name)))
+            result.append((rec.id, '%s - %s - %s - %s' % (rec.name, rec.partner_id.name, rec.city, rec.country_id.name)))
         return result

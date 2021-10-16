@@ -3,3 +3,4 @@ access_transport_order_user,access.transport.order.user,model_transport_order,,1
 access_transport_order_line_user,access.transport.order.line.user,model_transport_order_line,,1,1,1,1
 access_transport_order_place,access.transport.order.place,model_transport_place,,1,1,1,1
 access_transport_order_type,access.transport.order.type,model_transport_type,,1,1,1,1
+access_end_cargo_wizard,access.end.cargo.wizard,model_end_cargo_wizard,,1,1,1,1

@@ -5,10 +5,16 @@
         <field name="name">dm.f.transport.order.view.tree</field>
         <field name="model">transport.order</field>
         <field name="arch" type="xml">
-            <tree string="Transport orders">
-                <!--          TODO            decoration-info="state == 'draft'"-->
-                <!--           TODO           decoration-muted="state == 'cancel'"-->
+            <tree string="Transport orders"
+                  decoration-bf="state == 'delivered'"
+                  decoration-info="state == 'planning'"
+                  decoration-muted="state == 'cancel'"
+                  decoration-danger="state == 'on_way'">
                 <field name="name"/>
+                <field name="state" invisible="1"/>
+                <field name="place_from"/>
+                <field name="place_to"/>
+                <field name="driver_id"/>
                 <field name="partner_id" invisible="1"/>
                 <field name="total_gross" sum="Total gross" optional="show"/>
                 <field name="currency_id" invisible="1"/>
@@ -22,10 +28,8 @@
         <field name="arch" type="xml">
             <form string="Transport Order">
                 <header>
-                    <!-- Post -->
-                    <!--                        <button name="action_post" string="Post" class="oe_highlight"-->
-                    <!--                                type="object" groups="account.group_account_invoice"-->
-                    <!--                                attrs="{'invisible': [('state', '!=', 'draft')]}"/>-->
+                    <button name="confirm_cargo" string="Confirm" class="oe_highlight"
+                            type="object" attrs="{'invisible': [('state', '!=', 'planning')]}"/>
                     <!--                        &lt;!&ndash; Send (only invoices) &ndash;&gt;-->
                     <!--                        <button name="action_invoice_sent"-->
                     <!--                                type="object"-->
@@ -33,22 +37,26 @@
                     <!--                                attrs="{'invisible':['|', '|', ('state', '!=', 'posted'), ('invoice_sent', '=', True), ('type', 'not in', ('out_invoice', 'out_refund'))]}"-->
                     <!--                                class="oe_highlight"-->
                     <!--                                groups="base.group_user"/>-->
-                    <!--                        <button name="action_invoice_sent"-->
-                    <!--                                type="object"-->
-                    <!--                                string="Send &amp; Print"-->
-                    <!--                                attrs="{'invisible':['|', '|', ('state', '!=', 'posted'), ('invoice_sent', '=', False), ('type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund'))]}"-->
-                    <!--                                groups="base.group_user"/>-->
-                    <!-- Register Payment (only invoices / receipts) -->
-                    <!-- Cancel -->
-                    <!--                        <button name="button_cancel" string="Cancel Entry" type="object" groups="account.group_account_invoice"-->
-                    <!--                                attrs="{'invisible' : ['|', ('id', '=', False), ('state', '!=', 'draft')]}"/>-->
-                    <!--                        <button name="button_draft" string="Reset to Draft" type="object" groups="account.group_account_invoice"-->
-                    <!--                                attrs="{'invisible' : ['|', ('restrict_mode_hash_table', '=', True), ('state', 'not in', ('posted', 'cancel'))]}"/>-->
+                    <button name="end_cargo" string="End cargo"
+                            type="object" attrs="{'invisible': [('state', '!=', 'on_way')]}"/>
+                    <button name="cancel_cargo" string="Cancel cargo"
+                            type="object" attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
+                    <button name="back_to_planning" string="Back to planning" type="object"
+                            attrs="{'invisible': [('state', '!=', 'cancel')]}"/>
                     <field name="state" widget="statusbar" statusbar_visible="planning,confirmed,on_way,delivered"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="open_invoices" class="oe_stat_button" type="object"
+                                icon="fa-handshake-o"
+                                attrs="{'invisible': [('invoices_count', '=', 0)]}">
+                            <div class="o_stat_info">
+                                <field name="invoices_count"/>
+                                <span class="o_stat_text">Invoices</span>
+                            </div>
+                        </button>
+                    </div>
                     <div>
-                        <span class="o_form_label"><field name="type" readonly="1" nolabel="1"/></span>
                         <h1>
                             <span attrs="{'invisible': [('state', '!=', 'planning')]}">Planning</span>
                             <span attrs="{'invisible': [('state', '!=', 'confirmed')]}">Cargo transport confirmed</span>
@@ -63,48 +71,62 @@
                             <div class="o_td_label">
                                 <label for="name"/>
                             </div>
-                            <field name="name" nolabel="1"/>
+                            <field name="name" nolabel="1"
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
                             <div class="o_td_label">
                                 <label for="partner_id" string="Customer" style="font-weight:bold;"/>
                             </div>
                             <field name="partner_id" widget="res_partner_many2one" nolabel="1"
                                    context="{'show_address': 1, 'default_is_company': True, 'show_vat': True}"
-                                   options='{"always_reload": True, "no_quick_create": True}'/>
+                                   options='{"always_reload": True, "no_quick_create": True}'
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
                             <div class="o_td_label">
                                 <label for="place_from"/>
                             </div>
-                            <field name="place_from" nolabel="1" options='{"no_quick_create": True}'/>
+                            <field name="place_from" nolabel="1" options='{"no_quick_create": True}'
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
                             <div class="o_td_label">
                                 <label for="place_to"/>
                             </div>
                             <field name="place_to" nolabel="1" domain="[('partner_id', '=', partner_id)]"
-                                   options='{"no_quick_create": True}'/>
+                                   options='{"no_quick_create": True}'
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
                         </group>
 
                         <group id="header_right_group">
                             <div class="o_td_label">
                                 <label for="date_of_departure" style="font-weight:bold;"/>
                             </div>
-                            <field name="date_of_departure" nolabel="1"/>
+                            <field name="date_of_departure" nolabel="1"
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
                             <div class="o_td_label">
-                                <label for="driver" style="font-weight:bold;"/>
+                                <label for="driver_id" style="font-weight:bold;"/>
                             </div>
-                            <field name="driver" nolabel="1"/>
+                            <field name="driver_id" nolabel="1"
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
+
+                            <div class="o_td_label">
+                                <label for="vehicle_id" style="font-weight:bold;"/>
+                            </div>
+                            <field name="vehicle_id" nolabel="1"
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
 
                             <div class="o_td_label">
                                 <label for="type" style="font-weight:bold;"/>
                             </div>
-                            <field name="type" nolabel="1"/>
+                            <field name="type" nolabel="1"
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
                             <div class="o_td_label">
                                 <label for="currency_id" style="font-weight:bold;"/>
                             </div>
-                            <field name="currency_id" nolabel="1"/>
+                            <field name="currency_id" nolabel="1"
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
                         </group>
                     </group>
@@ -113,7 +135,8 @@
                             <field name="cargo_ids"
                                    widget="section_and_note_one2many"
                                    mode="tree"
-                                   context="{'default_currency_id': currency_id}">
+                                   context="{'default_currency_id': currency_id}"
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}">
                                 <tree string="Cargo Items" default_order="sequence, id">
                                     <control>
                                         <create name="add_line_control" string="Add a line"/>
@@ -122,7 +145,7 @@
                                     <field name="product_id"/>
                                     <field name="label"/>
                                     <field name="quantity"/>
-                                     <field name="product_uom_id" string="UoM" optional="show"/>
+                                    <field name="product_uom_id" string="UoM" optional="show"/>
                                     <field name="price_unit" string="Price"/>
                                     <field name="discount" string="Disc.%"/>
                                     <field name="tax_ids" widget="many2many_tags"/>
@@ -141,7 +164,7 @@
                                             <field name="quantity"/>
                                             <field name="product_uom_id"/>
                                             <field name="price_unit"/>
-                                            <field name="discount"  string="Discount (%)"/>
+                                            <field name="discount" string="Discount (%)"/>
                                             <field name="currency_id" invisible="1"/>
                                         </group>
                                         <group>
@@ -159,21 +182,16 @@
                             </group>
                         </page>
 
-                        <page id="additional_info"
-                              string="Other informations"><!--TODO groups="account.group_account_user"-->
+                        <page id="additional_info" string="Other informations">
                             <field name="internal_note" placeholder="Add an internal note..." nolabel="1" height="50"/>
-
                         </page>
 
                     </notebook>
                 </sheet>
 
-                <!-- Chatter -->
-                <!--                <div class="oe_chatter">-->
-                <!--        TODO-            <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>-->
-                <!--                    <field name="activity_ids" widget="mail_activity"/>-->
-                <!--                    <field name="message_ids" widget="mail_thread"/>-->
-                <!--                </div>-->
+                <div class="oe_chatter">
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>
@@ -194,6 +212,7 @@
     </record>
 
     <menuitem name="Transport" parent="fleet.menu_root" id="fleet_transport" sequence="1"/>
-    <menuitem action="dm_f_transport_order_view_action" parent="fleet_transport" id="fleet_transport_orders" sequence="100"/>
+    <menuitem action="dm_f_transport_order_view_action" parent="fleet_transport" id="fleet_transport_orders"
+              sequence="100"/>
 
 </odoo>

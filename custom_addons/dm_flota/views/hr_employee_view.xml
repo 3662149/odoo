@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="dm_flota_hr_employee_view_inherit_form" model="ir.ui.view">
+        <field name="name">dm.flota.hr.empyee.view.inherit.form</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[@name='button_box']" position="inside">
+                <button name="open_transports" class="oe_stat_button" type="object"
+                        icon="fa-handshake-o"
+                        attrs="{'invisible': [('transport_count', '=', 0)]}">
+                    <div class="o_stat_info">
+                        <field name="transport_count"/>
+                        <span class="o_stat_text">Transports</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

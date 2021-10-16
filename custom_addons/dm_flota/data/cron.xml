@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="dm_flota_change_state_to_on_way_cron" model="ir.cron">
+            <field name="name">Check and change status</field>
+            <field name="model_id" ref="model_transport_order"/>
+            <field name="state">code</field>
+            <field name="code">model._check_cargo_status()</field>
+            <field name="interval_number">5</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="active" eval="True" />
+        </record>
+    </data>
+</odoo>

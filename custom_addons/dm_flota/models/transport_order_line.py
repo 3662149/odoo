@@ -12,9 +12,10 @@ class TransportOrderLine(models.Model):
     transport_id = fields.Many2one('transport.order', required=True)
     tax_ids = fields.Many2many('account.tax', required=True)
     quantity = fields.Float(default=0)
-    product_uom_id = fields.Many2one(related='product_id.uom_id', readonly=True, required=True)
+    product_uom_id = fields.Many2one('uom.uom', default=lambda self: self.env.ref('uom.product_uom_kgm'), readonly=True,
+                                     required=True)
     price_unit = fields.Monetary(required=True, default=0)
-    discount= fields.Integer(default=0)
+    discount = fields.Integer(default=0)
     label = fields.Char()
     currency_id = fields.Many2one(related='transport_id.currency_id', readonly=True)
     price_net = fields.Monetary(compute='_compute_line_values', readonly=True)
@@ -35,15 +36,16 @@ class TransportOrderLine(models.Model):
             line.price_vat = 0
             line.price_total = 0
             if line.price_unit and len(line.tax_ids):
-                line.price_net = ((line.price_unit if not line.tax_ids.price_include else line.price_unit * (1 - (line.tax_ids.amount / 100))) * line.quantity) * (1 - line.discount / 100)
-                line.price_total = ((line.price_unit if line.tax_ids.price_include else line.price_unit * (1 + (line.tax_ids.amount / 100))) * line.quantity) * (1 - line.discount / 100)
+                line.price_net = ((line.price_unit if not line.tax_ids.price_include else line.price_unit * (
+                            1 - (line.tax_ids.amount / 100))) * line.quantity) * (1 - line.discount / 100)
+                line.price_total = ((line.price_unit if line.tax_ids.price_include else line.price_unit * (
+                            1 + (line.tax_ids.amount / 100))) * line.quantity) * (1 - line.discount / 100)
                 line.price_vat = line.price_total - line.price_net
 
     @api.onchange('product_id')
     def _onchange_product(self):
         if self.product_id:
             self.label = self.product_id.name
-            # self.product_uom_id = self.product_id.product_tmpl_id.uom_id
             self.price_unit = self.product_id.lst_price
             self.tax_ids = self.product_id.taxes_id[0] if self.product_id.taxes_id else False
             self._compute_line_values()
