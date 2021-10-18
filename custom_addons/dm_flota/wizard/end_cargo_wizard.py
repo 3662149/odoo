@@ -12,7 +12,17 @@ class EndCargoWizard(models.TransientModel):
     add_service_log = fields.Boolean()
 
     def confirm(self):
-        self.transport_id.internal_note += _("\n END TRIP NOTE:\n")
+        self.transport_id.write({
+            'internal_note': self.transport_id.internal_note or "" + _("\n END TRIP NOTE:\n" + self.internal_note),
+            'state': 'delivered'})
         if self.add_service_log:
-            pass
+            return {
+                'name': _('Add car service'),
+                'view_type': 'form',
+                'res_model': 'fleet.vehicle.log.services',
+                'view_mode': 'form',
+                'type': 'ir.actions.act_window',
+                'context': {'default_transport_id': self.transport_id.id, 'default_vehicle_id': self.vehicle_id.id},
+                'target': 'current'
+            }
         return True

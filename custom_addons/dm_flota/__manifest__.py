@@ -8,6 +8,7 @@ Moduł utworzony w ramach pracy inżynierskiej
 Wydział Matematyki i Informatyki
 Uniwesytet Mikołaja Kopernika w Toruniu 2021/2022r.
 ================================
+Uses OSRM API based on BSD 2-Clause licence https://choosealicense.com/licenses/bsd-2-clause/ https://project-osrm.org/
     """,
     'author': 'Damian Mazepa',
     'depends': ['base', 'sale', 'calendar', 'contacts', 'sale', 'hr', 'fleet', 'mail'],
@@ -18,7 +19,8 @@ Uniwesytet Mikołaja Kopernika w Toruniu 2021/2022r.
         'views/transport_place_view.xml',
         'views/hr_employee_view.xml',
         'data/cron.xml',
-        'wizard/end_cargo_wizard_view.xml'
+        'wizard/end_cargo_wizard_view.xml',
+        'views/fleet_vehicle_log_services_view.xml',
     ],
     'installable': True,
     'application': True,

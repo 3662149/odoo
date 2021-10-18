@@ -7,11 +7,11 @@ class TransportPlace(models.Model):
     _description = 'Transport Place model'
 
     name = fields.Char(required=True)
-    partner_id = fields.Many2one('res.partner')
-    street = fields.Char()
+    partner_id = fields.Many2one('res.partner', required=True)
+    street = fields.Char(required=True)
     street2 = fields.Char()
-    city = fields.Char()
-    zip = fields.Char()
+    city = fields.Char(required=True)
+    zip = fields.Char(required=True)
     country_id = fields.Many2one('res.country')
 
     def name_get(self):

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import requests
+from geopy.geocoders import Nominatim
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class TransportOrder(models.Model):
@@ -14,28 +16,65 @@ class TransportOrder(models.Model):
     partner_id = fields.Many2one('res.partner', required=True)
     place_from = fields.Many2one('transport.place', required=True, track_visibility='onchange')
     place_to = fields.Many2one('transport.place', required=True, track_visibility='onchange')
-    # vehicle_id = fields.Many2one('')
     date_of_departure = fields.Datetime(required=True, track_visibility='onchange')
-    # estimated_driving_time na podstawie sredniej u kierowcy z jaka zapierdala ;d
-    # predicted_date_arrival = fields.Datetime  to bedzie data startu plus przewidywany czas jazdy
-    # odleglosc w kilometrach wyliczana
+    predicted_date_arrival = fields.Datetime(readonly=True, compute='_compute_date_of_departure')
+    estimated_driving_time = fields.Float(readonly=True)
+    distance = fields.Float(readonly=True)
     driver_id = fields.Many2one('hr.employee', required=True, track_visibility='onchange')
     vehicle_id = fields.Many2one('fleet.vehicle', required=True, track_visibility='onchange')
-    cargo_ids = fields.One2many('transport.order.line', 'transport_id')
+    cargo_ids = fields.One2many('transport.order.line', 'transport_id', ondelete="cascade")
     currency_id = fields.Many2one('res.currency', required=True, default=lambda self: self.env.ref('base.PLN'))
     total_gross = fields.Monetary(compute='_compute_summary_values', readonly=True)
     total_net = fields.Monetary(compute='_compute_summary_values', readonly=True)
     total_vat = fields.Monetary(compute='_compute_summary_values', readonly=True)
     internal_note = fields.Char()
     state = fields.Selection([('planning', "Planning"), ('confirmed', "Confirmed"), ('on_way', "On the way"),
-                              ('delivered', 'Delivered'), ('cancel', 'Cancel')], default='planning', readonly=True, track_visibility='onchange')
+                              ('delivered', 'Delivered'), ('cancel', 'Cancel')], default='planning', readonly=True,
+                             track_visibility='onchange')
     type = fields.Many2one('transport.type')
     invoices_count = fields.Integer(compute='_get_invoices_count')
+    services_count = fields.Integer(compute='_get_services_count')
 
     @api.onchange('cargo_ids')
     def _onchange_cargo_ids(self):
         for line in self.cargo_ids:
             line._compute_line_values()
+
+    @api.depends('date_of_departure', 'distance', 'estimated_driving_time')
+    def _compute_date_of_departure(self):
+        self.predicted_date_arrival = self.date_of_departure
+        if self.distance and self.estimated_driving_time:
+            self.predicted_date_arrival = self.date_of_departure + timedelta(hours=self.estimated_driving_time)
+
+    def write(self, vals):
+        res = super(TransportOrder, self).write(vals)
+        if 'place_to' in vals or 'place_from' in vals:
+            self._check_distance()
+        return res
+
+    @api.model
+    def create(self, vals):
+        res = super(TransportOrder, self).create(vals)
+        res._check_distance()
+        return res
+
+    def _check_distance(self):
+        self.distance = 0.
+        self.estimated_driving_time = ''
+        if self.place_to and self.place_from:
+            geolocator = Nominatim(user_agent="FleetUMK")
+            place_from = geolocator.geocode(f"{self.place_from.street}, {self.place_from.city}, {self.place_from.zip}")
+            place_to = geolocator.geocode(f"{self.place_to.street}, {self.place_to.city}, {self.place_to.zip}")
+            if place_from and place_to:
+                distance = requests.get(f'http://router.project-osrm.org/table/v1/driving/{place_from.longitude},'
+                                        f'{place_from.latitude};{place_to.longitude},{place_to.latitude}'
+                                        f'?annotations=distance,duration')
+                if distance.status_code == 200 and distance.json().get('code', '') == 'Ok':
+                    distance = distance.json()
+                    self.write({
+                        'distance':  round(distance['distances'][0][1] / 1000, 2),
+                        'estimated_driving_time': round((distance['durations'][0][1] / 60) / 60, 2)
+                    })
 
     @api.depends('cargo_ids', 'cargo_ids.price_unit', 'cargo_ids.quantity', 'cargo_ids.tax_ids', 'cargo_ids.discount')
     def _compute_summary_values(self):
@@ -52,6 +91,11 @@ class TransportOrder(models.Model):
     def _get_invoices_count(self):
         for order in self:
             order.invoices_count = order.env['account.move'].search_count([('transport_order_id', '=', order.id)])
+
+    def _get_services_count(self):
+        for order in self:
+            order.services_count = order.env['fleet.vehicle.log.services'].search_count(
+                [('transport_id', '=', order.id)])
 
     def _create_invoice(self):
         invoice_vals = {
@@ -76,7 +120,8 @@ class TransportOrder(models.Model):
         return self.env['account.move'].create(invoice_vals)
 
     def _check_cargo_status(self):
-        for order in self.env['transport.order'].search([('state', '=', 'confirmed'), ('date_of_departure', '!=', False)]):
+        for order in self.env['transport.order'].search(
+                [('state', '=', 'confirmed'), ('date_of_departure', '!=', False)]):
             if order.date_of_departure <= datetime.now():
                 order.write({'state': 'on_way'})
 
@@ -122,9 +167,20 @@ class TransportOrder(models.Model):
             'context': {}
         }
 
+    def open_services(self):
+        return {
+            'name': _('Services'),
+            'domain': [('transport_id', '=', self.id)],
+            'view_type': 'form',
+            'res_model': 'fleet.vehicle.log.services',
+            'view_mode': 'tree,form',
+            'type': 'ir.actions.act_window'
+        }
+
     # @api.constrains('vehicle_id')
     # def _check_vehlice_avaiability(self):
     #     for order in self:
+    #
     #         #sprawdz czy nie bedzie w tym czasie dostepny
 
     # @api.constrains('vehicle_id')
@@ -140,5 +196,3 @@ class TransportOrder(models.Model):
     # nie wiem czy ladownosc jest w pojazdach wiec trzeba by bylo ddoac wtedy
 
     # dodac send by ermail tak jak jest to w sale orderze
-
-

@@ -55,6 +55,14 @@
                                 <span class="o_stat_text">Invoices</span>
                             </div>
                         </button>
+                        <button name="open_services" class="oe_stat_button" type="object"
+                                icon="fa-handshake-o"
+                                attrs="{'invisible': [('services_count', '=', 0)]}">
+                            <div class="o_stat_info">
+                                <field name="services_count"/>
+                                <span class="o_stat_text">Services</span>
+                            </div>
+                        </button>
                     </div>
                     <div>
                         <h1>
@@ -83,9 +91,16 @@
                                    attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
                             <div class="o_td_label">
+                                <label for="type" style="font-weight:bold;"/>
+                            </div>
+                            <field name="type" nolabel="1"
+                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
+
+                            <div class="o_td_label">
                                 <label for="place_from"/>
                             </div>
                             <field name="place_from" nolabel="1" options='{"no_quick_create": True}'
+                                   domain="[('partner_id', '!=', partner_id)]"
                                    attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
                             <div class="o_td_label">
@@ -104,6 +119,21 @@
                                    attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
                             <div class="o_td_label">
+                                <label for="predicted_date_arrival" style="font-weight:bold;"/>
+                            </div>
+                            <field name="predicted_date_arrival" nolabel="1"/>
+
+                            <div class="o_td_label">
+                                <label for="distance" style="font-weight:bold;"/>
+                            </div>
+                            <field name="distance" nolabel="1"/>
+
+                            <div class="o_td_label">
+                                <label for="estimated_driving_time" style="font-weight:bold;"/>
+                            </div>
+                            <field name="estimated_driving_time" nolabel="1"/>
+
+                            <div class="o_td_label">
                                 <label for="driver_id" style="font-weight:bold;"/>
                             </div>
                             <field name="driver_id" nolabel="1"
@@ -115,12 +145,6 @@
                             <field name="vehicle_id" nolabel="1"
                                    attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
-
-                            <div class="o_td_label">
-                                <label for="type" style="font-weight:bold;"/>
-                            </div>
-                            <field name="type" nolabel="1"
-                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
 
                             <div class="o_td_label">
                                 <label for="currency_id" style="font-weight:bold;"/>
