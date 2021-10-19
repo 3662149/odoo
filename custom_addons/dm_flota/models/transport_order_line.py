@@ -11,7 +11,7 @@ class TransportOrderLine(models.Model):
     product_id = fields.Many2one('product.product', required=True)
     transport_id = fields.Many2one('transport.order', required=True)
     tax_ids = fields.Many2many('account.tax', required=True)
-    quantity = fields.Float(default=0)
+    quantity = fields.Float(default=1)
     product_uom_id = fields.Many2one('uom.uom', default=lambda self: self.env.ref('uom.product_uom_kgm'), readonly=True,
                                      required=True)
     price_unit = fields.Monetary(required=True, default=0)

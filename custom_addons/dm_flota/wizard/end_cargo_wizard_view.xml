@@ -9,6 +9,8 @@
                         <field name="transport_id" invisible="1"/>
                         <field name="vehicle_id" invisible="1"/>
                         <field name="internal_note" string="Add final note"/>
+                        <field name="burned_fuel" string="Add amount of burned fuel"/>
+                        <field name="fuel_price_unit" string="Add price of one liter"/>
                         <field name="add_service_log"/>
                     </group>
                     <footer>

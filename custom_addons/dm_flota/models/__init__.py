@@ -5,3 +5,6 @@ from . import transport_type
 from . import account_move
 from . import hr_employee
 from . import fleet_vehicle_log_services
+from . import fleet_vehicle_odometer
+from . import fleet_vehicle_log_fuel
+from . import fleet_vehicle

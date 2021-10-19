@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="dm_flota_fleet_vehicle_view_inherit_form" model="ir.ui.view">
+        <field name="name">dm.flota.fleet.vehicle.view.inherit.form</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="arch" type="xml">
+            <field name="acquisition_date" position="before">
+                <field name="average_fuel_consumption"/>
+                <field name="lifting_capacity"/>
+                <field name="curb_weight"/>
+                <field name="free_capacity"/>
+            </field>
+        </field>
+    </record>
+</odoo>

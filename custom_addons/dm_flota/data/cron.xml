@@ -2,12 +2,23 @@
 <odoo>
     <data noupdate="1">
         <record id="dm_flota_change_state_to_on_way_cron" model="ir.cron">
-            <field name="name">Check and change status</field>
+            <field name="name">DM_FLOTA: Check and change status</field>
             <field name="model_id" ref="model_transport_order"/>
             <field name="state">code</field>
             <field name="code">model._check_cargo_status()</field>
             <field name="interval_number">5</field>
             <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="active" eval="True" />
+        </record>
+
+        <record id="dm_flota_count_avg_consumption_cron" model="ir.cron">
+            <field name="name">DM_FLOTA: Check average consumption</field>
+            <field name="model_id" ref="model_fleet_vehicle"/>
+            <field name="state">code</field>
+            <field name="code">model._compute_average_fuel_consumption()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
             <field name="active" eval="True" />
         </record>

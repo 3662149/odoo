@@ -6,4 +6,35 @@
     <record id="transport_type_international" model="transport.type">
         <field name="name">International transport</field>
     </record>
+
+
+            <record id="dm_flota_mail_template_confirmed_order" model="mail.template">
+            <field name="name">Confirm cargo</field>
+            <field name="model_id" ref="dm_flota.model_transport_order"/>
+            <field name="subject">${object.name} Cargo has been confirmed</field>
+            <field name="partner_to">${object.partner_id.id}</field>
+            <field name="email_from">${user.email_formatted | safe}</field>
+            <field name="email_to">${(object.partner_id.email_formatted) | safe}</field>
+            <field name="body_html" type="xml">
+<div style="margin: 0px; padding: 0px;">
+    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+        Dear ${object.partner_id.name}<br/><br/>
+        Thank you for choosing our company.
+        We want to gladly inform that cargo <strong>${(object.name or '').replace('/','-')}</strong> has been confirmed
+        to routes according to the date ${(object.date_of_departure or '')}.
+        <br /><br />
+        Do not hesitate to contact us if you have any questions.
+        <br/><br/>
+        Best regards,<br/>
+        % if user and user.signature:
+        ${user.signature | safe}
+        % endif
+    </p>
+</div>
+</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="user_signature" eval="False"/>
+        </record>
+
 </odoo>

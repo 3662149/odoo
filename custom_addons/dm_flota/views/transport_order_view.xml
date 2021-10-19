@@ -30,19 +30,16 @@
                 <header>
                     <button name="confirm_cargo" string="Confirm" class="oe_highlight"
                             type="object" attrs="{'invisible': [('state', '!=', 'planning')]}"/>
-                    <!--                        &lt;!&ndash; Send (only invoices) &ndash;&gt;-->
-                    <!--                        <button name="action_invoice_sent"-->
-                    <!--                                type="object"-->
-                    <!--                                string="Send &amp; Print"-->
-                    <!--                                attrs="{'invisible':['|', '|', ('state', '!=', 'posted'), ('invoice_sent', '=', True), ('type', 'not in', ('out_invoice', 'out_refund'))]}"-->
-                    <!--                                class="oe_highlight"-->
-                    <!--                                groups="base.group_user"/>-->
                     <button name="end_cargo" string="End cargo"
                             type="object" attrs="{'invisible': [('state', '!=', 'on_way')]}"/>
                     <button name="cancel_cargo" string="Cancel cargo"
                             type="object" attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
                     <button name="back_to_planning" string="Back to planning" type="object"
                             attrs="{'invisible': [('state', '!=', 'cancel')]}"/>
+                    <button name="action_email_send"
+                            type="object"
+                            string="Send"
+                            class="oe_highlight"/>
                     <field name="state" widget="statusbar" statusbar_visible="planning,confirmed,on_way,delivered"/>
                 </header>
                 <sheet>

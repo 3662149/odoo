@@ -34,11 +34,17 @@ class TransportOrder(models.Model):
     type = fields.Many2one('transport.type')
     invoices_count = fields.Integer(compute='_get_invoices_count')
     services_count = fields.Integer(compute='_get_services_count')
+    burned_fuel = fields.Float(readonly=True)
 
     @api.onchange('cargo_ids')
     def _onchange_cargo_ids(self):
+        cargo_weight = 0
         for line in self.cargo_ids:
+            cargo_weight += line.quantity
             line._compute_line_values()
+        if cargo_weight > self.vehicle_id.free_capacity:
+            raise UserError(_('Choosen cargo is heavier than permissible weight'))
+
 
     @api.depends('date_of_departure', 'distance', 'estimated_driving_time')
     def _compute_date_of_departure(self):
@@ -72,7 +78,7 @@ class TransportOrder(models.Model):
                 if distance.status_code == 200 and distance.json().get('code', '') == 'Ok':
                     distance = distance.json()
                     self.write({
-                        'distance':  round(distance['distances'][0][1] / 1000, 2),
+                        'distance': round(distance['distances'][0][1] / 1000, 2),
                         'estimated_driving_time': round((distance['durations'][0][1] / 60) / 60, 2)
                     })
 
@@ -177,22 +183,37 @@ class TransportOrder(models.Model):
             'type': 'ir.actions.act_window'
         }
 
-    # @api.constrains('vehicle_id')
-    # def _check_vehlice_avaiability(self):
-    #     for order in self:
-    #
-    #         #sprawdz czy nie bedzie w tym czasie dostepny
+    def action_email_send(self):
+        self.ensure_one()
+        template_id = self.env.ref('dm_flota.dm_flota_mail_template_confirmed_order').id
+        lang = self.env.context.get('lang')
+        template = self.env['mail.template'].browse(template_id)
+        if template.lang:
+            lang = template._render_template(template.lang, 'transport.order', self.ids[0])
+        ctx = {
+            'default_model': 'transport.order',
+            'default_res_id': self.ids[0],
+            'default_use_template': bool(template_id),
+            'default_template_id': template_id,
+            'default_composition_mode': 'comment',
+            'force_email': True,
+        }
+        return {
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'mail.compose.message',
+            'views': [(False, 'form')],
+            'view_id': False,
+            'target': 'new',
+            'context': ctx,
+        }
 
-    # @api.constrains('vehicle_id')
-    # def _check_driver_avaiability(self):
-    #     for order in self:
-    #         #sprawdz czy nie bedzie w tym czasie dostepny
 
-    # w pojazdach liczone srednie zucycie na podstawie tras w jakich bral udzial i ile spalil paliwa
-    # jak beda statusy: planowany -> przy zmianie statusu ma sie wystawic faktura ale w fakturach nic nie zmieniac->potwierdzony - > w trasie -> i tutaj trzeba bedzie guzikiem zatwierdzic gdzie wyskoczy wizard do wpisania litrow paliwa i notatki po zakonczeniu trasy i sie zmieni na done
-    # zrobic status w hr employee -> czy jest w trasie czy tez nie na podstawie aktualnej daty i czy ma teraz zleceniea
-
-    # jednostka miary musi byc w kg i wtedy bedzie mozna sprawdzac czy wybrany pojazd ma taka ladownosc
-    # nie wiem czy ladownosc jest w pojazdach wiec trzeba by bylo ddoac wtedy
-
-    # dodac send by ermail tak jak jest to w sale orderze
+#dodac
+#1. modele aut dostwczych w fleet vehicle model
+#2. dodac auta
+#3. doac produkty uslugi dla towaru
+#4. dodac produkty uslugi dla warsztatu
+#5. dodac pojazdy
+#6. dodac kierowcow
+#7. dodac transporty

@@ -21,6 +21,7 @@ Uses OSRM API based on BSD 2-Clause licence https://choosealicense.com/licenses/
         'data/cron.xml',
         'wizard/end_cargo_wizard_view.xml',
         'views/fleet_vehicle_log_services_view.xml',
+        'views/fleet_vehicle_view.xml',
     ],
     'installable': True,
     'application': True,
