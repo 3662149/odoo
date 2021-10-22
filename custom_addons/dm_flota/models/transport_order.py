@@ -34,6 +34,13 @@ class TransportOrder(models.Model):
     services_count = fields.Integer(compute='_get_services_count')
     burned_fuel = fields.Float(readonly=True)
 
+
+    #TODO
+    #jak bedzie notatka o serwisie to auto ma sie przeniesc do statusu in repaid (stworzyc taki status za pomoca data)
+    #i zalocy domene jak si ewybiera auto ze nie moze byc w statusie in repair
+
+    #generator ma robic random dni z danego miesiaca potwierdzac cargo, pozniej ma odpalic crona i przejsc po delivered i je zakonczyc
+
     def name_get(self):
         result = []
         for rec in self:
