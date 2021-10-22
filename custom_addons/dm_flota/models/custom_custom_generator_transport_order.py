@@ -10,6 +10,8 @@ common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
 uid = common.authenticate(db, username, password, {})
 models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
 
+HOW_MANY_ORDERS = 3
+
 
 currency_id = 17
 tax_id = 1
@@ -31,17 +33,15 @@ kierowcy = models.execute_kw(db, uid, password, 'hr.employee', 'search_read', [[
 pojazdy = models.execute_kw(db, uid, password, 'fleet.vehicle', 'search_read', [[]], {'fields': ['name']})
 produkty = models.execute_kw(db, uid, password, 'product.product', 'search_read', [[['id', 'not in', (9,10,11,12,13)]]], {'fields': ['name']})
 
-for i in range(3):
-    print(i)
+for i in range(HOW_MANY_ORDERS):
+    print(str(i), ' / ', HOW_MANY_ORDERS)
     klient = choice(klienci)
     inicjaly = klient['name'].split(' ')[0][0] + klient['name'].split(' ')[1][0]
     while True:
-        print('roll1')
         od = choice(miejsca)
         if od['name'][:2] == inicjaly:
             break
     while True:
-        print('roll2')
         do = choice(miejsca)
         if do['name'][:2] != inicjaly:
             break

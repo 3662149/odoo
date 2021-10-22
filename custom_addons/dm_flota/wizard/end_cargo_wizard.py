@@ -29,12 +29,13 @@ class EndCargoWizard(models.TransientModel):
             'driver_id': self.transport_id.driver_id.user_partner_id.id,
             'transport_id': self.transport_id.id
         })
-        self.env['fleet.vehicle.log.fuel'].create({
+        fuel_log_id = self.env['fleet.vehicle.log.fuel'].create({
             'liter': self.burned_fuel,
             'price_per_liter': self.fuel_price_unit,
             'purchaser_id': self.transport_id.driver_id.user_partner_id.id,
             'transport_id': self.transport_id.id
         })
+        fuel_log_id._onchange_liter_price_amount()
         if self.add_service_log:
             return {
                 'name': _('Add car service'),
