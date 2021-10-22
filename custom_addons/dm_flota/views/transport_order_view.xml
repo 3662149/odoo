@@ -10,7 +10,6 @@
                   decoration-info="state == 'planning'"
                   decoration-muted="state == 'cancel'"
                   decoration-danger="state == 'on_way'">
-                <field name="name"/>
                 <field name="state" invisible="1"/>
                 <field name="place_from"/>
                 <field name="place_to"/>
@@ -18,9 +17,35 @@
                 <field name="partner_id" invisible="1"/>
                 <field name="total_gross" sum="Total gross" optional="show"/>
                 <field name="currency_id" invisible="1"/>
+                <field name="state" optional="hide"/>
+                <field name="date_of_departure" optional="hide"/>
             </tree>
         </field>
     </record>
+
+    <record id="dm_f_transport_order_view_search" model="ir.ui.view">
+        <field name="name">dm.f.transport.order.view.search</field>
+        <field name="model">transport.order</field>
+        <field name="arch" type="xml">
+            <search string="Search transports">
+                <field name="place_from"
+                       filter_domain="['|', ('place_from', 'ilike', self), ('place_to', 'ilike', self)]"
+                       string="Place"/>
+                <field name="place_from"
+                       filter_domain="['|', ('place_from.city', 'ilike', self), ('place_to.city', 'ilike', self)]"
+                       string="City"/>
+                <field name="partner_id"/>
+                <field name="driver_id"/>
+                <field name="vehicle_id"/>
+                <group expand="0" string="Group by">
+                    <filter string="Group by status" name="state_find" context="{'group_by': 'state'}"/>
+                    <filter string="Group by partner" name="partner_id_find" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Group by date of departure" name="date_of_departure_find" context="{'group_by': 'date_of_departure'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
 
     <record id="dm_f_transport_order_view_form" model="ir.ui.view">
         <field name="name">>dm.f.transport.order.view.form</field>
@@ -74,12 +99,6 @@
                         <group id="header_left_group">
 
                             <div class="o_td_label">
-                                <label for="name"/>
-                            </div>
-                            <field name="name" nolabel="1"
-                                   attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
-
-                            <div class="o_td_label">
                                 <label for="partner_id" string="Customer" style="font-weight:bold;"/>
                             </div>
                             <field name="partner_id" widget="res_partner_many2one" nolabel="1"
@@ -97,15 +116,17 @@
                                 <label for="place_from"/>
                             </div>
                             <field name="place_from" nolabel="1" options='{"no_quick_create": True}'
-                                   domain="[('partner_id', '!=', partner_id)]"
                                    attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
+                            <!--                                   domain="[('partner_id', '!=', partner_id)]"-->
 
                             <div class="o_td_label">
                                 <label for="place_to"/>
                             </div>
-                            <field name="place_to" nolabel="1" domain="[('partner_id', '=', partner_id)]"
+                            <field name="place_to" nolabel="1"
                                    options='{"no_quick_create": True}'
                                    attrs="{'readonly': [('state', 'not in', ('planning', 'cancelled'))]}"/>
+                            <!--                                   domain="[('partner_id', '=', partner_id)]"-->
+
                         </group>
 
                         <group id="header_right_group">
@@ -230,7 +251,9 @@
             Create transport order and keep an eye all the time.
         </p>
         </field>
+        <field name="context">{'search_default_state_find': 1, 'search_default_partner_id_find': 1,'search_default_date_of_departure_find': 1}</field>
     </record>
+
 
     <menuitem name="Transport" parent="fleet.menu_root" id="fleet_transport" sequence="1"/>
     <menuitem action="dm_f_transport_order_view_action" parent="fleet_transport" id="fleet_transport_orders"

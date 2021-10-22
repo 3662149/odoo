@@ -11,8 +11,6 @@ class TransportOrder(models.Model):
     _inherit = ['mail.thread']
     _description = 'Transport Order model'
 
-    name = fields.Char(required=True)
-
     partner_id = fields.Many2one('res.partner', required=True)
     place_from = fields.Many2one('transport.place', required=True, track_visibility='onchange')
     place_to = fields.Many2one('transport.place', required=True, track_visibility='onchange')
@@ -36,6 +34,13 @@ class TransportOrder(models.Model):
     services_count = fields.Integer(compute='_get_services_count')
     burned_fuel = fields.Float(readonly=True)
 
+    def name_get(self):
+        result = []
+        for rec in self:
+            result.append((rec.id, '%s %s - %s %s - %s' % (
+            rec.place_from.name, rec.place_from.city, rec.place_to.name, rec.place_to.city, rec.partner_id.name)))
+        return result
+
     @api.onchange('cargo_ids')
     def _onchange_cargo_ids(self):
         cargo_weight = 0
@@ -44,7 +49,6 @@ class TransportOrder(models.Model):
             line._compute_line_values()
         if cargo_weight > self.vehicle_id.free_capacity:
             raise UserError(_('Choosen cargo is heavier than permissible weight'))
-
 
     @api.depends('date_of_departure', 'distance', 'estimated_driving_time')
     def _compute_date_of_departure(self):
@@ -105,9 +109,7 @@ class TransportOrder(models.Model):
 
     def _create_invoice(self):
         invoice_vals = {
-            'ref': self.name,
             'type': 'out_invoice',
-            'invoice_origin': self.name,
             'narration': self.internal_note,
             'partner_id': self.partner_id.id,
             'transport_order_id': self.id,
@@ -135,10 +137,10 @@ class TransportOrder(models.Model):
         for order in self:
             taxes_in_order = []
             for line in order.cargo_ids:
-                if line.tax_ids.name in taxes_in_order:
-                    raise UserError(_('Diffrent taxes in cargo lines!'))
-                else:
-                    taxes_in_order.append(line.tax_ids.name)
+                taxes_in_order.append(line.tax_ids.name)
+            taxes_in_order = list(set(taxes_in_order))
+            if len(taxes_in_order) > 1:
+                raise UserError(_('Diffrent taxes in cargo lines!'))
             if order.invoices_count == 0:
                 order._create_invoice()
             order.write({'state': 'confirmed'})
@@ -207,13 +209,3 @@ class TransportOrder(models.Model):
             'target': 'new',
             'context': ctx,
         }
-
-
-#dodac
-#1. modele aut dostwczych w fleet vehicle model
-#2. dodac auta
-#3. doac produkty uslugi dla towaru
-#4. dodac produkty uslugi dla warsztatu
-#5. dodac pojazdy
-#6. dodac kierowcow
-#7. dodac transporty
