@@ -22,7 +22,7 @@ class FleetVehicle(models.Model):
 
     def _compute_free_capacity(self):
         for vehicle in self:
-            vehicle.write({'free_capacity': 0}) #TODO jak pofixuje dane to wywalic ta linie
-            if vehicle.lifting_capacity and vehicle.curb_weight: #TODO jak pofixuje dane to wywalic ta linie
+            vehicle.write({'free_capacity': 0})
+            if vehicle.lifting_capacity and vehicle.curb_weight:
                 vehicle.write({'free_capacity': vehicle.lifting_capacity - vehicle.curb_weight})
 4
